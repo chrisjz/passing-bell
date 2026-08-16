@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0a08">
+<meta name="description" content="A bell tower with no fixed place, passed from one person to one person. Each hand casts one bell. It cannot be finished alone, and every new bell moves the end further away.">
+<title>Passing Bell</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 3c1.6 0 2.6 1.2 2.8 2.9.5 5 1.4 7.6 4.5 11.6 1 1.3.5 2.5-1.1 2.5H9.8c-1.6 0-2.1-1.2-1.1-2.5 3.1-4 4-6.6 4.5-11.6C13.4 4.2 14.4 3 16 3z" fill="%23c08a3e"/><circle cx="16" cy="23" r="2.2" fill="%23c08a3e"/></svg>'>
+<style>
+:root{
+  --bg:#0c0a08; --bg2:#14100b; --panel:#171208; --line:#2c241733;
+  --ink:#d8cfc0; --dim:#8a7f6d; --faint:#5c5346;
+  --bronze:#c08a3e; --bronze-hi:#e8b45a; --bronze-dk:#7a5522;
+  --blue:#7aa7d9; --warn:#d9926a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-size:17px; line-height:1.55; min-height:100vh;
+  padding-bottom:5.5rem;
+}
+main{max-width:30rem;margin:0 auto;padding:1.1rem 1.1rem 2rem}
+h1{font-size:.85rem;letter-spacing:.42em;text-transform:uppercase;font-weight:400;color:var(--bronze);text-align:center;margin:.6rem 0 .15rem}
+.sub{font-size:.78rem;color:var(--dim);text-align:center;letter-spacing:.06em;min-height:1.2em}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:.6rem;padding:1rem 1.1rem;margin:1rem 0}
+.card p{margin:.5rem 0;font-size:.95rem}
+.card p:first-child{margin-top:0}
+.smallcaps{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+button{
+  font:inherit;color:var(--bg);background:var(--bronze);border:0;border-radius:.5rem;
+  padding:.7rem 1.2rem;cursor:pointer;letter-spacing:.04em;
+}
+button:active{transform:translateY(1px)}
+button.ghost{background:transparent;color:var(--bronze);border:1px solid var(--bronze-dk)}
+button.big{width:100%;font-size:1.05rem;padding:.9rem}
+.linkish{background:none;border:0;color:var(--dim);text-decoration:underline;cursor:pointer;font-size:.82rem;padding:.2rem}
+#circleWrap{position:relative;margin:.8rem auto 0;width:min(88vw,22rem);height:min(88vw,22rem)}
+#bellCircle{width:100%;height:100%;display:block}
+.swing{transform-box:fill-box;transform-origin:50% 4%}
+@keyframes swingA{0%{transform:rotate(0)}22%{transform:rotate(11deg)}55%{transform:rotate(-7deg)}82%{transform:rotate(3deg)}100%{transform:rotate(0)}}
+.struck .swing{animation:swingA .62s ease-out}
+.struck .glow{animation:glowA .62s ease-out}
+@keyframes glowA{0%{opacity:.9}100%{opacity:0}}
+.glow{opacity:0}
+@media (prefers-reduced-motion:reduce){.struck .swing{animation:none}}
+#ringBtn{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:7.2rem;height:7.2rem;border-radius:50%;font-size:1rem;letter-spacing:.15em;
+  background:radial-gradient(circle at 35% 30%,var(--bronze-hi),var(--bronze) 55%,var(--bronze-dk));
+  color:#1a1206;box-shadow:0 0 2.2rem #c08a3e33;
+}
+#stopBtn{position:absolute;right:0;bottom:0;font-size:.72rem;padding:.35rem .7rem;background:transparent;color:var(--faint);border:1px solid var(--line);border-radius:.4rem}
+#goLine{text-align:center;font-size:.8rem;color:var(--blue);letter-spacing:.12em;min-height:1.3em;margin-top:.2rem;font-style:italic}
+#extent{margin:1rem 0 .2rem}
+#extentBar{height:2px;background:#241d12;border-radius:1px;margin:.45rem 0 .3rem;overflow:hidden}
+#extentFill{height:100%;background:var(--bronze);width:0%;transition:width .6s}
+#extent .nums{font-size:.82rem;color:var(--dim)}
+#extent .pace{font-size:.76rem;color:var(--faint);font-style:italic}
+#rows{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1rem;line-height:1.7;
+  letter-spacing:.5em;text-align:center;height:11.9em;overflow:hidden;
+  margin:.7rem 0;position:relative;
+}
+#rows::before{content:"";position:absolute;inset:0;background:linear-gradient(var(--bg),transparent 40%);pointer-events:none}
+#rows .r{color:var(--faint)}
+#rows .r:last-child{color:var(--ink)}
+#rows .t{color:var(--blue)}
+#rows .n{color:var(--bronze)}
+#lineage{margin-top:1.4rem}
+#lineage h2, .ov h2{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:400;margin-bottom:.5rem}
+.bellRow{border-top:1px solid var(--line);padding:.55rem 0;font-size:.88rem}
+.bellRow .insc{color:var(--ink)}
+.bellRow .insc.none{color:var(--faint);font-style:italic}
+.bellRow .meta{color:var(--dim);font-size:.78rem}
+.bellRow .gap{color:var(--faint);font-size:.74rem;font-style:italic}
+.chip{display:inline-block;font-size:.66rem;letter-spacing:.08em;border:1px solid var(--warn);color:var(--warn);border-radius:.3rem;padding:0 .35rem;vertical-align:1px}
+.bourdonRow{border-top:1px solid var(--line);padding:.6rem 0;font-size:.85rem;color:var(--dim);font-style:italic}
+#passBar{
+  position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 35%);
+  padding:1.2rem 1.1rem calc(.9rem + env(safe-area-inset-bottom));display:flex;justify-content:center;
+}
+#passBar button{max-width:28rem;width:100%;box-shadow:0 -.2rem 2rem #000a}
+.ov{
+  position:fixed;inset:0;background:#0c0a08f2;z-index:10;overflow-y:auto;
+  padding:1.2rem 1.1rem 3rem;display:none;
+}
+.ov.open{display:block}
+.ov .inner{max-width:30rem;margin:0 auto}
+.ov h2{margin:1rem 0 .8rem}
+#engrave{
+  width:100%;background:var(--panel);border:1px solid var(--bronze-dk);border-radius:.5rem;
+  color:var(--bronze-hi);font:inherit;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;
+  text-align:center;padding:.85rem .6rem;
+}
+#engrave:focus{outline:1px solid var(--bronze)}
+.ropeWeight{font-size:.74rem;color:var(--faint);text-align:right;margin-top:.3rem}
+.manifest{font-size:.85rem}
+.manifest li{margin:.45rem 0 .45rem 1.1rem}
+.manifest .you{color:var(--bronze-hi)}
+.manifest .melt{color:var(--warn)}
+.manifest .belllist{max-height:11rem;overflow-y:auto;border:1px solid var(--line);border-radius:.4rem;padding:.4rem .6rem;margin:.4rem 0;font-size:.8rem}
+.manifest .belllist div{padding:.15rem 0;color:var(--dim)}
+.manifest .final{margin-top:.9rem;color:var(--ink);font-style:italic}
+.linkBox{
+  font-family:ui-monospace,Menlo,monospace;font-size:.72rem;word-break:break-all;
+  background:var(--panel);border:1px solid var(--line);border-radius:.4rem;padding:.6rem;
+  max-height:7.5rem;overflow-y:auto;color:var(--dim);user-select:all;-webkit-user-select:all;
+}
+.btnRow{display:flex;gap:.6rem;margin:.7rem 0;flex-wrap:wrap}
+.btnRow button{flex:1;min-width:8rem}
+#notice{font-size:.8rem;color:var(--warn);text-align:center;margin:.5rem 0;font-style:italic;min-height:0}
+details{margin:1.6rem 0 .5rem}
+summary{cursor:pointer;color:var(--dim);font-size:.82rem}
+details p{font-size:.85rem;color:var(--dim);margin:.5rem 0}
+footer{margin-top:2.2rem;text-align:center;font-size:.72rem;color:var(--faint);font-style:italic}
+.hidden{display:none !important}
+::selection{background:var(--bronze-dk);color:var(--ink)}
+</style>
+</head>
+<body>
+<main id="app">
+  <h1>Passing Bell</h1>
+  <div class="sub" id="statusLine"></div>
+  <div id="notice"></div>
+
+  <div class="card" id="introCard">
+    <p class="smallcaps" id="introKicker"></p>
+    <p id="introBody"></p>
+    <div class="btnRow"><button class="big" id="introBtn"></button></div>
+  </div>
+
+  <div id="circleWrap">
+    <svg id="bellCircle" viewBox="0 0 320 320" aria-label="The ring of bells"></svg>
+    <button id="ringBtn" class="hidden" aria-label="Ring the bells">RING</button>
+    <button id="stopBtn" class="hidden">silence</button>
+  </div>
+  <div id="goLine"></div>
+
+  <div id="extent" class="hidden">
+    <div class="smallcaps">The extent</div>
+    <div class="nums" id="extentNums"></div>
+    <div id="extentBar"><div id="extentFill"></div></div>
+    <div class="pace" id="extentPace"></div>
+  </div>
+
+  <div id="rows" aria-hidden="true"></div>
+
+  <section id="lineage" class="hidden">
+    <h2>The hands</h2>
+    <div id="lineageList"></div>
+  </section>
+
+  <details id="about">
+    <summary>what is this?</summary>
+    <p>A bell tower that exists only by being handed on. There is no server and no account: everything it is — every bell, every inscription, every date — travels inside the link or inside this very file.</p>
+    <p>Each hand casts one bell. The tower rings <i>changes</i>: permutations that need many bells. On one bell the tower is trivially finishable; every bell after that multiplies the number of possible changes, so each new hand pushes the end further away. It can grow, but it can never again be finished.</p>
+    <p>A ring holds twelve bells. When a thirteenth is cast, the oldest is melted into the bourdon — the deep bell you may hear toll before the ringing starts. Its bronze remains; its words do not.</p>
+    <p>Nothing about you travels except what you type into the engraving, the moment you cast, and the count of changes rung while you held it — and you are shown all of it before you commit.</p>
+  </details>
+
+  <footer>the last piece of an anthology of five,<br>and the only one that cannot be finished.</footer>
+</main>
+
+<div id="passBar" class="hidden"><button id="passBtn">Hand it on</button></div>
+
+<!-- ══ RITUAL ══ -->
+<div class="ov" id="ritual">
+  <div class="inner">
+    <div id="rStep1">
+      <h2>Cast your bell</h2>
+      <p style="font-size:.88rem;color:var(--dim)">Bells carry words around the shoulder. Engrave up to 40 characters, or none — the metal doesn't mind. This is the only thing about you that will ever travel.</p>
+      <div style="margin:1rem 0">
+        <input id="engrave" maxlength="40" autocomplete="off" spellcheck="false" placeholder="( no words )">
+        <div class="ropeWeight" id="ropeWeight"></div>
+      </div>
+      <p style="font-size:.82rem;color:var(--dim)" id="castMeta"></p>
+      <div class="btnRow">
+        <button id="toManifest">Continue</button>
+        <button class="ghost" id="cancel1">Not now</button>
+      </div>
+      <p style="margin-top:.6rem"><button class="linkish" id="relayLink">or hand it on without casting a bell</button></p>
+    </div>
+
+    <div id="rStep2" class="hidden">
+      <h2>What travels — everything, and nothing else</h2>
+      <ul class="manifest" id="manifestList"></ul>
+      <div class="btnRow">
+        <button id="commitBtn">Cast it</button>
+        <button class="ghost" id="backTo1">Back</button>
+      </div>
+    </div>
+
+    <div id="rStep3" class="hidden">
+      <h2 id="doneHead">The bell is cast</h2>
+      <p style="font-size:.9rem" id="doneNote"></p>
+      <div id="carrierLink" style="margin-top:1.1rem">
+        <p class="smallcaps">By link — light</p>
+        <p style="font-size:.8rem;color:var(--dim);margin:.3rem 0">Everything above, folded into one address. The tower must stand at its home for this to open.</p>
+        <div class="linkBox" id="linkBox"></div>
+        <div class="btnRow"><button id="copyBtn">Copy the link</button></div>
+      </div>
+      <div id="carrierNoLink" class="hidden" style="margin-top:1.1rem">
+        <p class="smallcaps">By link — unavailable</p>
+        <p style="font-size:.8rem;color:var(--dim)">This copy has never stood at a web address, so a link would have nowhere to point. Pass the file below, or raise the tower somewhere of your own — the README travels with the source.</p>
+      </div>
+      <div style="margin-top:1.3rem">
+        <p class="smallcaps">By file — whole</p>
+        <p style="font-size:.8rem;color:var(--dim);margin:.3rem 0">This very page, rewritten with the tower inside it. Sovereign: it needs no address and no web at all.</p>
+        <div class="btnRow"><button id="dlBtn">Download the tower</button></div>
+      </div>
+      <p style="margin-top:1.2rem;font-size:.88rem;font-style:italic">Hand it to one person. Not a feed, not a group — one.</p>
+      <div class="btnRow"><button class="ghost" id="doneBack">Return to the tower</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEETING ══ -->
+<div class="ov" id="meeting">
+  <div class="inner">
+    <h2>Two towers meet</h2>
+    <p style="font-size:.9rem" id="meetIntro"></p>
+    <div class="card" id="meetA"></div>
+    <div class="card" id="meetB"></div>
+    <p style="font-size:.82rem;color:var(--dim)" id="meetNote"></p>
+    <div class="btnRow"><button class="big" id="meetMerge">Hang them together</button></div>
+    <div class="btnRow">
+      <button class="ghost" id="meetKeepA">Keep the first</button>
+      <button class="ghost" id="meetKeepB">Keep the second</button>
+    </div>
+    <p style="font-size:.76rem;color:var(--faint);font-style:italic">Whichever you do not keep will be forgotten by this browser — though any copy of it elsewhere lives on. The tower cannot see forks, and it cannot know a copy died.</p>
+  </div>
+</div>
+
+<noscript><p style="text-align:center;padding:2rem">This tower needs JavaScript to ring. The bells are silent without it.</p></noscript>
+
+<script type="application/json" id="tower-state">{"v":1,"founders":[],"gen":0,"rung":0,"bourdon":{"n":0,"since":null},"bells":[],"home":null}</script>
+
+<script id="tower-core">
+"use strict";
+/* TowerCore — the pure heart of Passing Bell.
+   No DOM, no Date.now, no network. Runs identically in a browser and in Node,
+   which is how the harness proves the lineage through the real carriers. */
+(function (root) {
+  var EPOCH = Date.UTC(2020, 0, 1);
+  var ALPH = "0123456789abcdefghijklmnopqrstuvwxyz";
+  var LIMITS = { MAX_BELLS: 12, FRAG_BUDGET: 1500, MELT_AT: 1450, INSC_CHARS: 40, INSC_ENC: 80, MAX_FOUNDERS: 4 };
+
+  function mins(ms) { return Math.max(0, Math.floor((ms - EPOCH) / 60000)); }
+  function minsToMs(m) { return EPOCH + m * 60000; }
+  function b36(n) { return Math.floor(n).toString(36); }
+  function p36(s) {
+    if (typeof s !== "string" || s === "" || !/^[0-9a-z]+$/.test(s)) throw new Error("bad number field");
+    var n = parseInt(s, 36);
+    if (!Number.isFinite(n)) throw new Error("bad number field");
+    return n;
+  }
+  function nat(x) {
+    x = typeof x === "string" ? Number(x) : x;
+    if (typeof x !== "number" || !Number.isFinite(x)) return 0;
+    return Math.max(0, Math.min(9007199254740000, Math.floor(x)));
+  }
+  function fnv(str) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return h >>> 0;
+  }
+  function crc(payload) { return (fnv(payload) % 1679616).toString(36).padStart(4, "0"); }
+  function randId(rand, len) {
+    var s = "";
+    for (var i = 0; i < len; i++) s += ALPH[Math.min(35, Math.floor(rand() * 36))];
+    return s;
+  }
+
+  function genesis() { return { v: 1, founders: [], gen: 0, rung: 0, bourdon: { n: 0, since: null }, bells: [], home: null }; }
+  function isGenesis(s) { return !!s && s.gen === 0 && s.bells.length === 0 && s.bourdon.n === 0; }
+
+  /* Inscription codec: percent-encoding whose output can never collide with
+     the fragment's structural characters (. ~ -). */
+  function encInsc(t) {
+    var enc = encodeURIComponent(t), out = "";
+    for (var i = 0; i < enc.length; i++) {
+      var ch = enc[i];
+      if ("~.-_!*'()".indexOf(ch) >= 0) out += "%" + ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0");
+      else out += ch;
+    }
+    return out;
+  }
+  function decInsc(s) { return decodeURIComponent(s); }
+  function dropLoneSurrogates(t) {
+    var out = "";
+    for (var ch of String(t)) {
+      var cp = ch.codePointAt(0);
+      if (cp >= 0xd800 && cp <= 0xdfff) continue;
+      out += ch;
+    }
+    return out;
+  }
+  function clampInscription(t) {
+    t = dropLoneSurrogates(t == null ? "" : t).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+    var pts = Array.from(t).slice(0, LIMITS.INSC_CHARS);
+    t = pts.join("");
+    while (pts.length && encInsc(t).length > LIMITS.INSC_ENC) { pts.pop(); t = pts.join(""); }
+    return t.replace(/\s+$/, "");
+  }
+
+  function byBell(a, b) { return a.m - b.m || a.i - b.i || (a.s < b.s ? -1 : a.s > b.s ? 1 : 0); }
+  function sortBells(s) { s.bells.sort(byBell); }
+
+  /* normalize: accept anything a holder may have typed into the state and
+     return a well-formed tower. normalize(normalize(x)) === normalize(x). */
+  function normalize(raw) {
+    if (!raw || typeof raw !== "object") throw new Error("state is not an object");
+    var s = genesis();
+    if (Array.isArray(raw.founders)) {
+      var fs = [];
+      raw.founders.forEach(function (f) {
+        if (typeof f === "string" && /^[0-9a-z]{1,8}$/.test(f) && fs.indexOf(f) < 0) fs.push(f);
+      });
+      fs.sort();
+      s.founders = fs.slice(0, LIMITS.MAX_FOUNDERS);
+    }
+    s.gen = nat(raw.gen);
+    s.rung = nat(raw.rung);
+    if (raw.bourdon && typeof raw.bourdon === "object") {
+      s.bourdon.n = nat(raw.bourdon.n);
+      s.bourdon.since = raw.bourdon.since == null ? null : nat(raw.bourdon.since);
+    }
+    if (s.bourdon.n === 0) s.bourdon.since = null;
+    if (Array.isArray(raw.bells)) {
+      var seen = {};
+      raw.bells.forEach(function (rb) {
+        if (!rb || typeof rb !== "object") return;
+        var salt = String(rb.s == null ? "" : rb.s).toLowerCase().replace(/[^0-9a-z]/g, "").slice(0, 4) || "00";
+        var bell = { i: nat(rb.i), s: salt, m: nat(rb.m), y: rb.y ? 1 : 0, t: clampInscription(rb.t) };
+        var k = bell.i + ":" + bell.s;
+        if (!seen[k]) { seen[k] = true; s.bells.push(bell); }
+      });
+    }
+    sortBells(s);
+    s.home = typeof raw.home === "string" && /^https?:\/\//.test(raw.home) ? raw.home.slice(0, 300) : null;
+    s.gen = Math.max(s.gen, s.bourdon.n + s.bells.length);
+    return s;
+  }
+
+  function canonical(s) {
+    return {
+      v: 1,
+      founders: s.founders.slice().sort(),
+      gen: s.gen,
+      rung: s.rung,
+      bourdon: { n: s.bourdon.n, since: s.bourdon.since == null ? null : s.bourdon.since },
+      bells: s.bells.slice().sort(byBell).map(function (b) { return { i: b.i, s: b.s, m: b.m, y: b.y ? 1 : 0, t: b.t }; }),
+      home: s.home || null
+    };
+  }
+  function stateEqual(a, b) { return JSON.stringify(canonical(a)) === JSON.stringify(canonical(b)); }
+  function fragmentView(s) { var c = canonical(s); c.home = null; return c; }
+  function fragEqual(a, b) { return JSON.stringify(fragmentView(a)) === JSON.stringify(fragmentView(b)); }
+  function lastCastM(s) { return s.bells.length ? s.bells[s.bells.length - 1].m : null; }
+
+  /* The tower's law of forgetting: a ring holds twelve; and the rope (the URL
+     fragment) holds 1450 characters. Whichever fills first, the oldest bell
+     is melted into the bourdon. Its count and its oldest date survive;
+     nothing else does. */
+  function enforceLimits(s) {
+    var melted = [], guard = 0;
+    while (guard++ < 4096 && s.bells.length &&
+           (s.bells.length > LIMITS.MAX_BELLS || encodeFragment(s).length > LIMITS.MELT_AT)) {
+      var b = s.bells.shift();
+      melted.push(b);
+      s.bourdon.n += 1;
+      s.bourdon.since = s.bourdon.since == null ? b.m : Math.min(s.bourdon.since, b.m);
+    }
+    return melted;
+  }
+
+  function castBell(state, opts) {
+    opts = opts || {};
+    if (opts.nowMs == null) throw new Error("castBell requires nowMs");
+    var rand = opts.rand || Math.random;
+    var s = normalize(canonical(state));
+    if (!s.founders.length) s.founders = [randId(rand, 6)];
+    var bell = { i: s.gen, s: randId(rand, 2), m: mins(opts.nowMs), y: opts.synthetic ? 1 : 0, t: clampInscription(opts.inscription) };
+    s.bells.push(bell);
+    s.gen += 1;
+    if (typeof opts.home === "string" && /^https?:\/\//.test(opts.home)) s.home = opts.home.slice(0, 300);
+    sortBells(s);
+    var melted = enforceLimits(s);
+    return { state: s, bell: bell, melted: melted };
+  }
+
+  function addRung(state, rows) {
+    var s = normalize(canonical(state));
+    s.rung = nat(s.rung + nat(rows));
+    return s;
+  }
+
+  function encodeFragment(state) {
+    var s = canonical(state);
+    var bells = s.bells.map(function (b) {
+      return [b36(b.i), b.s, b36(b.m), b.y ? "1" : "0", encInsc(b.t)].join("-");
+    }).join("~");
+    var payload = [
+      s.founders.join("~"),
+      b36(s.gen),
+      b36(s.rung),
+      b36(s.bourdon.n),
+      s.bourdon.since == null ? "" : b36(s.bourdon.since),
+      bells
+    ].join(".");
+    return "pb1." + payload + "." + crc(payload);
+  }
+
+  function decodeFragment(frag) {
+    if (typeof frag !== "string") throw new Error("no fragment");
+    frag = frag.replace(/^#/, "");
+    if (frag.slice(0, 4) !== "pb1.") throw new Error("not a passing-bell fragment");
+    var dot = frag.lastIndexOf(".");
+    if (dot < 4) throw new Error("malformed fragment");
+    var payload = frag.slice(4, dot), sum = frag.slice(dot + 1);
+    if (crc(payload) !== sum) throw new Error("the checksum fails — this link frayed in transit");
+    var f = payload.split(".");
+    if (f.length !== 6) throw new Error("malformed payload");
+    var raw = genesis();
+    raw.founders = f[0] ? f[0].split("~") : [];
+    raw.gen = p36(f[1]);
+    raw.rung = p36(f[2]);
+    raw.bourdon = { n: p36(f[3]), since: f[4] === "" ? null : p36(f[4]) };
+    raw.bells = f[5] ? f[5].split("~").map(function (bs) {
+      var parts = bs.split("-");
+      if (parts.length !== 5) throw new Error("malformed bell");
+      return { i: p36(parts[0]), s: parts[1], m: p36(parts[2]), y: parts[3] === "1" ? 1 : 0, t: decInsc(parts[4]) };
+    }) : [];
+    return normalize(raw);
+  }
+
+  function sameLineage(a, b) {
+    return a.founders.some(function (f) { return b.founders.indexOf(f) >= 0; });
+  }
+
+  /* When two towers meet in one browser.
+     Kin (a shared founder): a fork reuniting with itself — bells dedupe by
+     identity, counters take the maximum, so reunion never inflates the dead.
+     Strangers: two genuinely separate histories — bells hang together,
+     counters add. The tower cannot tell shared bronze from strange bronze
+     beyond its founder marks, so beyond four founders it assumes kinship. */
+  function merge(a, b) {
+    a = normalize(canonical(a));
+    b = normalize(canonical(b));
+    if (isGenesis(a)) return { state: b, kin: true, melted: [] };
+    if (isGenesis(b)) return { state: a, kin: true, melted: [] };
+    var kin = sameLineage(a, b);
+    var s = genesis();
+    s.founders = a.founders.concat(b.founders)
+      .filter(function (x, i, arr) { return arr.indexOf(x) === i; })
+      .sort().slice(0, LIMITS.MAX_FOUNDERS);
+    var byKey = {};
+    a.bells.concat(b.bells).forEach(function (bell) {
+      var k = bell.i + ":" + bell.s;
+      if (!byKey[k] || bell.m > byKey[k].m) byKey[k] = bell;
+    });
+    s.bells = Object.keys(byKey).map(function (k) { return byKey[k]; });
+    sortBells(s);
+    s.rung = kin ? Math.max(a.rung, b.rung) : a.rung + b.rung;
+    s.bourdon.n = kin ? Math.max(a.bourdon.n, b.bourdon.n) : a.bourdon.n + b.bourdon.n;
+    var sinces = [a.bourdon.since, b.bourdon.since].filter(function (x) { return x != null; });
+    s.bourdon.since = s.bourdon.n > 0 && sinces.length ? Math.min.apply(null, sinces) : null;
+    s.gen = Math.max(kin ? Math.max(a.gen, b.gen) : a.gen + b.gen, s.bourdon.n + s.bells.length);
+    s.home = a.home || b.home || null;
+    var melted = enforceLimits(s);
+    return { state: s, kin: kin, melted: melted };
+  }
+
+  /* The deep carrier: this file rewriting its own source. The state lives in
+     one JSON script block; every "<" is escaped, so no holder-typed text can
+     ever terminate the block, and rewriting is idempotent. */
+  var STATE_RE = /(<script type="application\/json" id="tower-state">)([\s\S]*?)(<\/script>)/;
+  function rewriteSource(src, state) {
+    if (typeof src !== "string") throw new Error("source is not a string");
+    var all = src.match(new RegExp(STATE_RE.source, "g"));
+    if (!all || all.length !== 1) throw new Error("expected exactly one tower-state block, found " + (all ? all.length : 0));
+    var json = JSON.stringify(canonical(state)).replace(/</g, "\\u003c");
+    return src.replace(STATE_RE, function (_all, open, _old, close) { return open + json + close; });
+  }
+  function extractStateFromSource(src) {
+    var m = typeof src === "string" ? src.match(STATE_RE) : null;
+    if (!m) throw new Error("no tower-state block found in source");
+    return normalize(JSON.parse(m[2]));
+  }
+
+  /* The music. Change-ringing rows: rounds, then Plain Bob on even stages,
+     plain hunt on odd. On 1 bell there is only tolling; on 3, plain hunt is
+     itself the extent; on 4, Plain Bob Minimus is the extent. */
+  function extent(n) { var e = 1; for (var i = 2; i <= n; i++) e *= i; return e; }
+  function stageName(n) {
+    var names = { 1: "tolling", 2: "the extent on two", 3: "Plain Hunt on three — the whole extent", 4: "Plain Bob Minimus — the whole extent", 5: "Plain Hunt Doubles", 6: "Plain Bob Minor", 7: "Plain Hunt Triples", 8: "Plain Bob Major", 9: "Plain Hunt Caters", 10: "Plain Bob Royal", 11: "Plain Hunt Cinques", 12: "Plain Bob Maximus" };
+    return names[n] || ("on " + n);
+  }
+  function swapFrom(row, start) {
+    var r = row.slice();
+    for (var j = start; j + 1 < r.length; j += 2) { var t = r[j]; r[j] = r[j + 1]; r[j + 1] = t; }
+    return r;
+  }
+  function makeRinger(n) {
+    n = Math.max(1, Math.min(12, Math.floor(nat(n)) || 1));
+    var row = [];
+    for (var i = 1; i <= n; i++) row.push(i);
+    var produced = 0, changeIdx = 0;
+    var prelude = n >= 2 ? 4 : 1; /* two whole pulls of rounds before going off */
+    return {
+      n: n,
+      next: function () {
+        produced++;
+        if (n === 1) return { row: [1], change: produced > 1, goneOff: false };
+        if (produced <= prelude) return { row: row.slice(), change: false, goneOff: false };
+        changeIdx++;
+        var prev = row;
+        if (n === 2) row = swapFrom(row, 0);
+        else if (changeIdx % 2 === 1) row = swapFrom(row, 0);
+        else if (n % 2 === 0 && row[0] === 1) row = swapFrom(row, 2);
+        else row = swapFrom(row, 1);
+        var changed = row.join(",") !== prev.join(",");
+        return { row: row.slice(), change: changed, goneOff: changeIdx === 1 };
+      }
+    };
+  }
+
+  root.TowerCore = {
+    EPOCH: EPOCH, LIMITS: LIMITS,
+    mins: mins, minsToMs: minsToMs,
+    genesis: genesis, isGenesis: isGenesis,
+    normalize: normalize, canonical: canonical,
+    stateEqual: stateEqual, fragmentView: fragmentView, fragEqual: fragEqual,
+    clampInscription: clampInscription, encInsc: encInsc, lastCastM: lastCastM,
+    castBell: castBell, addRung: addRung, enforceLimits: enforceLimits,
+    encodeFragment: encodeFragment, decodeFragment: decodeFragment,
+    sameLineage: sameLineage, merge: merge,
+    rewriteSource: rewriteSource, extractStateFromSource: extractStateFromSource,
+    extent: extent, stageName: stageName, makeRinger: makeRinger
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+</script>
+
+<script id="tower-app">
+"use strict";
+(function () {
+  var C = TowerCore;
+
+  /* Captured before anything touches the DOM: the deep carrier rewrites this,
+     not the mutated page. */
+  var PRISTINE = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var LS_KEY = "passing-bell:v1";
+  var LS_CAST = "passing-bell:v1:cast";
+  var IS_HTTP = /^https?:$/.test(location.protocol);
+
+  function loadStored() {
+    try {
+      var j = localStorage.getItem(LS_KEY);
+      return j ? C.normalize(JSON.parse(j)) : null;
+    } catch (e) { return null; }
+  }
+  function saveStored(s) { try { localStorage.setItem(LS_KEY, JSON.stringify(C.canonical(s))); } catch (e) {} }
+  function getCastKey() { try { return localStorage.getItem(LS_CAST); } catch (e) { return null; } }
+  function setCastKey(k) { try { localStorage.setItem(LS_CAST, k); } catch (e) {} }
+
+  /* ── formatting ── */
+  function fmtInt(n) { try { return n.toLocaleString("en-US"); } catch (e) { return String(n); } }
+  function fmtDate(m) {
+    var d = new Date(C.minsToMs(m));
+    return d.getUTCDate() + " " + ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getUTCMonth()] + " " + d.getUTCFullYear();
+  }
+  function fmtStamp(ms) {
+    var d = new Date(ms);
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return fmtDate(C.mins(ms)) + ", " + p(d.getUTCHours()) + ":" + p(d.getUTCMinutes()) + " UTC";
+  }
+  function fmtDur(minutes) {
+    if (minutes < 2) return "moments";
+    if (minutes < 90) return Math.round(minutes) + " minutes";
+    var h = minutes / 60;
+    if (h < 36) return Math.round(h) + " hours";
+    var d = h / 24;
+    if (d < 60) return Math.round(d) + " days";
+    var mo = d / 30.44;
+    if (mo < 22) return Math.round(mo) + " months";
+    return (Math.round(d / 365.25 * 10) / 10) + " years";
+  }
+  function humanSpan(seconds) {
+    if (seconds < 90) return "under two minutes";
+    var m = seconds / 60; if (m < 90) return "about " + Math.round(m) + " minutes";
+    var h = m / 60; if (h < 36) return "about " + Math.round(h) + " hours";
+    var d = h / 24; if (d < 60) return "about " + Math.round(d) + " days";
+    var y = d / 365.25;
+    if (y < 1.5) return "about a year";
+    if (y < 90) return "about " + Math.round(y) + " years";
+    if (y < 900) return "about " + Math.round(y / 100) + " hundred years";
+    if (y < 9e5) return "about " + fmtInt(Math.round(y / 1000)) + " thousand years";
+    return "longer than there have been bells";
+  }
+  function ordinal(n) {
+    var s = ["th", "st", "nd", "rd"], v = n % 100;
+    return n + (s[(v - 21) % 10] || s[v] || s[0]);
+  }
+  var ROWCHARS = "1234567890ET"; /* ringers' notation: 0=10, E=11, T=12 */
+
+  /* ── boot: resolve the state from the three places it can arrive ── */
+  var state = null;
+  var notices = [];
+  var strangers = [];
+  (function resolve() {
+    var frag = null, fragErr = null;
+    if (location.hash && location.hash.indexOf("pb1.") === 1) {
+      try { frag = C.decodeFragment(location.hash.slice(1)); }
+      catch (e) { fragErr = e.message; }
+    }
+    var file = null;
+    try { file = C.normalize(JSON.parse($("tower-state").textContent)); } catch (e) {}
+    var stored = loadStored();
+    var cands = [];
+    [frag, file, stored].forEach(function (s) { if (s && !C.isGenesis(s)) cands.push(s); });
+    if (fragErr) notices.push("The link you followed was damaged — " + fragErr + ". Below is what still stands here.");
+    state = cands.length ? cands[0] : C.genesis();
+    for (var i = 1; i < cands.length; i++) {
+      var other = cands[i];
+      if (C.fragEqual(state, other)) continue;
+      if (C.sameLineage(state, other) || C.isGenesis(state)) {
+        var before = state.bells.length;
+        var m = C.merge(state, other);
+        state = m.state;
+        if (state.bells.length !== before || m.melted.length) {
+          notices.push("A fork of this tower was already hanging in this browser. Its bells have been hung together with these.");
+        }
+      } else {
+        strangers.push(other);
+      }
+    }
+  })();
+
+  /* ── audio ── */
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var ctx = null, master = null, buffers = {}, ringing = false;
+  var ringer = null, nextTime = 0, rowParity = 0, tickTimer = null;
+  var sessionRows = 0, lastSavedRows = 0;
+
+  function bellFreq(oldIndex) {
+    var deg = Math.floor(oldIndex / 7) * 12 + [0, 2, 4, 5, 7, 9, 11][oldIndex % 7];
+    return 233.08 * Math.pow(2, deg / 12);
+  }
+  function bourdonFreq() {
+    return 233.08 / Math.pow(2, (12 + Math.min(9, state.bourdon.n)) / 12);
+  }
+  function renderBell(freq, seconds, deep) {
+    var sr = 22050, len = Math.ceil(seconds * sr);
+    var off = new OfflineAudioContext(1, len, sr);
+    var partials = [
+      [0.5, 0.55, 1.9], [1.0, 1.0, 1.0], [1.188, 0.45, 0.55], [1.503, 0.28, 0.4],
+      [2.0, 0.5, 0.32], [2.514, 0.18, 0.24], [2.662, 0.12, 0.2], [3.011, 0.09, 0.15], [4.166, 0.06, 0.08]
+    ];
+    var T = deep ? seconds * 0.92 : Math.max(2.0, Math.min(7.5, 6 * Math.sqrt(233 / freq)));
+    partials.forEach(function (p) {
+      var o = off.createOscillator(), g = off.createGain();
+      o.frequency.value = freq * p[0] * (1 + (Math.random() - 0.5) * 0.004);
+      g.gain.setValueAtTime(0.0001, 0);
+      g.gain.exponentialRampToValueAtTime(0.22 * p[1], 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, Math.min(seconds - 0.05, Math.max(0.1, T * p[2])));
+      o.connect(g); g.connect(off.destination);
+      o.start(0); o.stop(seconds);
+    });
+    return off.startRendering();
+  }
+  function ensureAudio() {
+    if (!ctx) {
+      ctx = new AC();
+      master = ctx.createDynamicsCompressor();
+      master.threshold.value = -18;
+      var gain = ctx.createGain();
+      gain.gain.value = 0.9;
+      master.connect(gain); gain.connect(ctx.destination);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    var jobs = [];
+    var n = state.bells.length;
+    for (var j = 0; j < n; j++) {
+      (function (j2) {
+        var f = bellFreq(j2), key = f.toFixed(2);
+        if (!buffers[key]) jobs.push(renderBell(f, 6, false).then(function (b) { buffers[key] = b; }));
+      })(j);
+    }
+    if (state.bourdon.n > 0) {
+      var bf = bourdonFreq(), bkey = "b" + bf.toFixed(2);
+      if (!buffers[bkey]) jobs.push(renderBell(bf, 13, true).then(function (b) { buffers[bkey] = b; }));
+    }
+    return Promise.all(jobs);
+  }
+  function strike(key, when, vol) {
+    if (!buffers[key]) return;
+    var src = ctx.createBufferSource();
+    src.buffer = buffers[key];
+    src.playbackRate.value = 1 + (Math.random() - 0.5) * 0.006;
+    var g = ctx.createGain();
+    g.gain.value = vol || 1;
+    src.connect(g); g.connect(master);
+    src.start(when);
+  }
+  function flashLater(bellNumber, when) {
+    var ms = Math.max(0, (when - ctx.currentTime) * 1000);
+    setTimeout(function () { flashBell(bellNumber); }, ms);
+  }
+  function rowLater(row, when) {
+    var ms = Math.max(0, (when - ctx.currentTime) * 1000);
+    setTimeout(function () { pushRow(row); }, ms);
+  }
+  function gapFor(n) { return n === 1 ? 0 : Math.max(0.16, 0.3 - 0.012 * n); }
+
+  function startRinging() {
+    var n = state.bells.length;
+    if (!n) return;
+    ensureAudio().then(function () {
+      ringing = true;
+      $("ringBtn").classList.add("hidden");
+      $("stopBtn").classList.remove("hidden");
+      ringer = C.makeRinger(n);
+      rowParity = 0;
+      nextTime = ctx.currentTime + 0.15;
+      if (state.bourdon.n > 0) {
+        strike("b" + bourdonFreq().toFixed(2), nextTime, 1);
+        tollBourdonVisual();
+        nextTime += 2.6;
+      }
+      tickTimer = setInterval(scheduleAhead, 120);
+      scheduleAhead();
+    });
+  }
+  function scheduleAhead() {
+    if (!ringing) return;
+    var n = ringer.n, gap = gapFor(n);
+    while (nextTime < ctx.currentTime + 0.6) {
+      var r = ringer.next();
+      if (r.goneOff) announceGo();
+      for (var p = 0; p < r.row.length; p++) {
+        var bellNumber = r.row[p];            /* 1 = treble = newest */
+        var oldIndex = n - bellNumber;        /* 0 = tenor = oldest  */
+        var t = n === 1 ? nextTime : nextTime + p * gap;
+        strike(bellFreq(oldIndex).toFixed(2), t, 1 - oldIndex * 0.015);
+        flashLater(bellNumber, t);
+      }
+      rowLater(r.row, nextTime);
+      if (r.change || n === 1) {
+        sessionRows++;
+        scheduleRungPersist();
+      }
+      updateExtentSoon();
+      nextTime += n === 1 ? 2.4 : n * gap + (rowParity % 2 === 1 ? gap : 0);
+      rowParity++;
+    }
+  }
+  function stopRinging() {
+    ringing = false;
+    if (tickTimer) clearInterval(tickTimer);
+    if (ctx) ctx.suspend();
+    $("stopBtn").classList.add("hidden");
+    if (state.bells.length) $("ringBtn").classList.remove("hidden");
+    $("goLine").textContent = "";
+  }
+  var persistTimer = null;
+  function scheduleRungPersist() {
+    if (persistTimer) return;
+    persistTimer = setTimeout(function () {
+      persistTimer = null;
+      if (sessionRows !== lastSavedRows && !C.isGenesis(state)) {
+        saveStored(C.addRung(state, sessionRows));
+        lastSavedRows = sessionRows;
+      }
+    }, 4000);
+  }
+  window.addEventListener("pagehide", function () {
+    if (sessionRows && !C.isGenesis(state)) saveStored(C.addRung(state, sessionRows));
+  });
+
+  var announced = false;
+  function announceGo() {
+    var n = state.bells.length;
+    setTimeout(function () {
+      $("goLine").textContent = "go, " + C.stageName(n);
+    }, 900);
+    if (n === 1 && !announced) {
+      announced = true;
+      setTimeout(function () {
+        $("goLine").textContent = "one bell has one change, and you have rung it — the tower is finished";
+        setTimeout(function () {
+          $("goLine").textContent = "hand it on, and it never will be again";
+        }, 6000);
+      }, 2800);
+    }
+  }
+
+  /* ── visuals ── */
+  var BELLPATH = "M -3.4,-10.5 C -3.4,-12.4 -1.8,-13.4 0,-13.4 C 1.8,-13.4 3.4,-12.4 3.4,-10.5 C 3.8,-5 4.6,-1.8 7.4,2.6 C 8.3,4 7.8,5.1 6.4,5.1 L -6.4,5.1 C -7.8,5.1 -8.3,4 -7.4,2.6 C -4.6,-1.8 -3.8,-5 -3.4,-10.5 Z";
+  function renderCircle() {
+    var svg = $("bellCircle");
+    var n = state.bells.length;
+    var out = ['<defs><radialGradient id="bz" cx="38%" cy="30%"><stop offset="0%" stop-color="#e8b45a"/><stop offset="55%" stop-color="#c08a3e"/><stop offset="100%" stop-color="#6e4c1e"/></radialGradient></defs>'];
+    if (state.bourdon.n > 0) {
+      out.push('<g id="bourdonDisc"><circle cx="160" cy="160" r="64" fill="#171208" stroke="#2c2417" stroke-width="1"/>',
+        '<text x="160" y="155" text-anchor="middle" fill="#5c5346" font-size="10" letter-spacing="3" font-family="serif">BOURDON</text>',
+        '<text x="160" y="172" text-anchor="middle" fill="#8a7f6d" font-size="11" font-family="serif">' + state.bourdon.n + ' melted</text></g>');
+    }
+    for (var k = 1; k <= n; k++) {
+      var ang = -Math.PI / 2 + (k - 1) * 2 * Math.PI / Math.max(n, 1);
+      var cx = 160 + 112 * Math.cos(ang), cy = 160 + 112 * Math.sin(ang);
+      var oldIndex = n - k;
+      var scale = n === 1 ? 2.6 : 1.05 + 1.35 * (1 - oldIndex / Math.max(1, n - 1));
+      out.push('<g id="bellg' + k + '" transform="translate(' + cx.toFixed(1) + ',' + cy.toFixed(1) + ') scale(' + scale.toFixed(2) + ')">',
+        '<circle class="glow" cx="0" cy="-2" r="15" fill="#e8b45a" opacity="0"/>',
+        '<g class="swing"><path d="' + BELLPATH + '" fill="url(#bz)"/><circle cx="0" cy="6.6" r="1.5" fill="#7a5522"/></g>',
+        '</g>',
+        '<text x="' + cx.toFixed(1) + '" y="' + (cy + scale * 5.1 + 14).toFixed(1) + '" text-anchor="middle" fill="#8a7f6d" font-size="10" font-family="serif">' + ROWCHARS[k - 1] + '</text>');
+    }
+    if (!n) {
+      out.push('<text x="160" y="156" text-anchor="middle" fill="#5c5346" font-size="12" font-family="serif" font-style="italic">no bells hang here</text>',
+        '<circle cx="160" cy="160" r="112" fill="none" stroke="#2c2417" stroke-width="1" stroke-dasharray="2 6"/>');
+    }
+    svg.innerHTML = out.join("");
+  }
+  var flashTimers = {};
+  function flashBell(k) {
+    var g = $("bellg" + k);
+    if (!g) return;
+    g.classList.remove("struck");
+    void g.getBoundingClientRect();
+    g.classList.add("struck");
+    clearTimeout(flashTimers[k]);
+    flashTimers[k] = setTimeout(function () { g.classList.remove("struck"); }, 650);
+  }
+  function tollBourdonVisual() {
+    var d = $("bourdonDisc");
+    if (!d) return;
+    d.animate([{ opacity: 1 }, { opacity: 0.35 }, { opacity: 1 }], { duration: 2400 });
+  }
+  function pushRow(row) {
+    var el = $("rows");
+    var div = document.createElement("div");
+    div.className = "r";
+    div.innerHTML = row.map(function (b) {
+      var cls = b === 1 ? "t" : (b === row.length ? "n" : "");
+      return cls ? '<span class="' + cls + '">' + ROWCHARS[b - 1] + "</span>" : ROWCHARS[b - 1];
+    }).join("");
+    el.appendChild(div);
+    while (el.children.length > 7) el.removeChild(el.firstChild);
+  }
+
+  /* ── prose ── */
+  function renderStatus() {
+    var n = state.bells.length, parts = [];
+    if (state.gen) parts.push(state.gen === 1 ? "one hand" : state.gen + " hands");
+    parts.push(n === 0 ? "no bells" : n === 1 ? "one bell" : n + " bells");
+    if (state.bourdon.n) parts.push(state.bourdon.n + " melted");
+    $("statusLine").textContent = parts.join(" · ");
+  }
+  function renderExtent() {
+    var n = state.bells.length;
+    var ex = $("extent");
+    if (!n) { ex.classList.add("hidden"); return; }
+    ex.classList.remove("hidden");
+    var E = C.extent(n);
+    var rung = state.rung + sessionRows;
+    $("extentNums").textContent = "changes possible on " + n + (n === 1 ? " bell: " : " bells: ") + fmtInt(E) +
+      " · rung across all hands: " + fmtInt(rung);
+    $("extentFill").style.width = Math.min(100, 100 * rung / E) + "%";
+    if (n === 1) {
+      $("extentPace").textContent = rung ? "the extent is complete — the only finished state this tower will ever know" : "toll it once and the tower is finished";
+    } else {
+      var rowDur = n * gapFor(n) * 1.25;
+      $("extentPace").textContent = "rung without repeating, the whole extent would take " + humanSpan(E * rowDur) +
+        " — every new bell multiplies it";
+    }
+  }
+  var extentTimer = null;
+  function updateExtentSoon() {
+    if (extentTimer) return;
+    extentTimer = setTimeout(function () { extentTimer = null; renderExtent(); }, 1500);
+  }
+  function renderLineage() {
+    var sec = $("lineage"), list = $("lineageList");
+    if (!state.bells.length && !state.bourdon.n) { sec.classList.add("hidden"); return; }
+    sec.classList.remove("hidden");
+    var html = [];
+    var bells = state.bells.slice().reverse(); /* newest first */
+    var pure = state.founders.length <= 1;
+    bells.forEach(function (b, idx) {
+      var younger = bells[idx - 1]; /* the bell cast after this one */
+      var older = bells[idx + 1];
+      var line = '<div class="bellRow">';
+      line += b.t ? '<span class="insc">“' + escapeHtml(b.t) + '”</span>' : '<span class="insc none">(no words)</span>';
+      if (b.y) line += ' <span class="chip">⚗ synthetic — cast by the test harness, not a hand</span>';
+      line += '<div class="meta">' + (pure ? "the " + ordinal(b.i + 1) + " hand · " : "") + "cast " + fmtDate(b.m);
+      if (idx === 0) line += " · the treble now — it leads";
+      line += "</div>";
+      if (older) line += '<div class="gap">hung after ' + fmtDur(b.m - older.m) + " of silence</div>";
+      line += "</div>";
+      html.push(line);
+    });
+    if (state.bourdon.n) {
+      html.push('<div class="bourdonRow">the bourdon · ' + state.bourdon.n + (state.bourdon.n === 1 ? " bell" : " bells") +
+        " melted and recast" + (state.bourdon.since != null ? " · oldest bronze cast " + fmtDate(state.bourdon.since) : "") +
+        " · it has no words</div>");
+    }
+    list.innerHTML = html.join("");
+  }
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function renderIntro() {
+    var n = state.bells.length;
+    var kick = $("introKicker"), body = $("introBody"), btn = $("introBtn");
+    if (!n) {
+      kick.textContent = "an empty tower";
+      body.innerHTML = "No one has held this before you. Cast the first bell and it will be, briefly, the only finished bell tower in the world — one bell has exactly one change. Hand it on, and it never will be again.";
+      btn.textContent = "Cast the first bell";
+      btn.onclick = function () { openRitual("cast"); };
+    } else {
+      kick.textContent = "you have been handed a bell tower";
+      var last = C.lastCastM(state);
+      var silence = last != null ? fmtDur(C.mins(Date.now()) - last) : null;
+      body.innerHTML = (state.gen === 1 ? "One person has" : state.gen + " people have") +
+        " held it before you, each for a while, each casting one bell." +
+        (silence ? " It last changed hands " + silence + " ago." : "") +
+        " It rings <i>changes</i> — patterns that need many bells; no single hand can ever finish it. Listen. Then, if you choose, cast your bell and hand it to one person.";
+      btn.textContent = "Ring the bells";
+      btn.onclick = function () {
+        $("introCard").classList.add("hidden");
+        startRinging();
+      };
+    }
+  }
+  function renderAll() {
+    renderStatus();
+    renderCircle();
+    renderExtent();
+    renderLineage();
+    renderIntro();
+    var n = state.bells.length;
+    $("passBar").classList.toggle("hidden", n === 0);
+    $("ringBtn").classList.toggle("hidden", n === 0 || ringing || !$("introCard").classList.contains("hidden"));
+    if ($("introCard").classList.contains("hidden") && n > 0 && !ringing) $("ringBtn").classList.remove("hidden");
+    $("notice").textContent = notices.join(" ");
+  }
+
+  /* ── the ritual ── */
+  var pending = null;   /* {state, bell, melted} or {state} for relay */
+  var ritualMode = "cast";
+  function homeUrl() {
+    if (IS_HTTP) return location.origin + location.pathname;
+    return state.home;
+  }
+  function openRitual(mode) {
+    ritualMode = mode;
+    var already = getCastKey();
+    if (mode === "cast" && already && state.bells.some(function (b) { return b.i + ":" + b.s === already; })) {
+      ritualMode = "relay";
+    }
+    $("ritual").classList.add("open");
+    if (ritualMode === "cast") {
+      $("rStep1").classList.remove("hidden");
+      $("rStep2").classList.add("hidden");
+      $("rStep3").classList.add("hidden");
+      $("engrave").value = "";
+      $("castMeta").textContent = "Cast " + fmtStamp(Date.now()) + " · the " + ordinal(state.gen + 1) + " hand" +
+        (state.bells.length >= C.LIMITS.MAX_BELLS ? " · the ring is full: casting will melt the oldest bell into the bourdon" : "");
+      updateRopeWeight();
+    } else {
+      buildPending();
+      showManifest();
+    }
+  }
+  function closeRitual() { $("ritual").classList.remove("open"); }
+  function updateRopeWeight() {
+    var draft = C.clampInscription($("engrave").value);
+    var probe = C.castBell(C.addRung(state, sessionRows), {
+      inscription: draft, nowMs: Date.now(), rand: Math.random, home: IS_HTTP ? homeUrl() : undefined
+    });
+    var len = C.encodeFragment(probe.state).length;
+    $("ropeWeight").textContent = "rope weight: " + len + " / " + C.LIMITS.FRAG_BUDGET + " — the rope never breaks; when it fills, the tower melts its oldest bell";
+  }
+  function buildPending() {
+    var base = C.addRung(state, sessionRows);
+    if (ritualMode === "cast") {
+      pending = C.castBell(base, {
+        inscription: $("engrave").value,
+        nowMs: Date.now(),
+        rand: Math.random,
+        home: IS_HTTP ? homeUrl() : undefined
+      });
+    } else {
+      pending = { state: base, bell: null, melted: [] };
+    }
+  }
+  function showManifest() {
+    var s = pending.state;
+    var li = [];
+    var bellsHtml = s.bells.map(function (b) {
+      var you = pending.bell && b.i === pending.bell.i && b.s === pending.bell.s;
+      return '<div' + (you ? ' class="you"' : "") + ">" +
+        (b.t ? "“" + escapeHtml(b.t) + "”" : "(no words)") +
+        " · cast " + fmtDate(b.m) + (b.y ? " · ⚗ synthetic" : "") + (you ? " · YOURS" : "") + "</div>";
+    }).join("");
+    li.push("<li>" + s.bells.length + " bells, each with its inscription and cast date:<div class='belllist'>" + bellsHtml + "</div></li>");
+    if (pending.bell) {
+      li.push('<li class="you">your bell: ' + (pending.bell.t ? "“" + escapeHtml(pending.bell.t) + "”" : "no words") +
+        ", cast " + fmtStamp(C.minsToMs(pending.bell.m)) + "</li>");
+      var prevLast = C.lastCastM(state);
+      if (prevLast != null) {
+        li.push("<li>the silence it records: " + fmtDur(pending.bell.m - prevLast) + " between the last hand and you</li>");
+      }
+    } else {
+      li.push("<li>no bell will be added — the tower will not remember your hand</li>");
+    }
+    if (pending.melted && pending.melted.length) {
+      pending.melted.forEach(function (mb) {
+        li.push('<li class="melt">casting this melts the oldest bell — ' +
+          (mb.t ? "“" + escapeHtml(mb.t) + "”" : "(no words)") + ", cast " + fmtDate(mb.m) +
+          " — into the bourdon. Its bronze travels; its words do not.</li>");
+      });
+    }
+    li.push("<li>the bourdon: " + (s.bourdon.n ? s.bourdon.n + " melted bells" + (s.bourdon.since != null ? ", oldest bronze from " + fmtDate(s.bourdon.since) : "") : "empty — nothing has been forgotten yet") + "</li>");
+    li.push("<li>hands: " + s.gen + " · changes rung: " + fmtInt(s.rung) +
+      (sessionRows ? " (" + fmtInt(sessionRows) + " of them rung while you held it)" : "") + "</li>");
+    li.push("<li>founder marks: " + (s.founders.length ? s.founders.join(", ") : "yours will be minted on casting") + "</li>");
+    li.push("<li>carried only inside the file, never in the link: the tower's home address — " +
+      (IS_HTTP ? escapeHtml(location.origin + location.pathname) : (s.home ? escapeHtml(s.home) : "none; this copy has never stood on the web")) + "</li>");
+    li.push('<li class="final">Nothing else travels. No name, no account, no device, no place — only what is written above.</li>');
+    $("manifestList").innerHTML = li.join("");
+    $("commitBtn").textContent = pending.bell ? "Cast it" : "Send it onward";
+    $("rStep1").classList.add("hidden");
+    $("rStep2").classList.remove("hidden");
+    $("rStep3").classList.add("hidden");
+  }
+  function commit() {
+    state = pending.state;
+    sessionRows = 0;
+    lastSavedRows = 0;
+    saveStored(state);
+    if (pending.bell) setCastKey(pending.bell.i + ":" + pending.bell.s);
+    var base = homeUrl();
+    var frag = C.encodeFragment(state);
+    if (base) {
+      $("carrierLink").classList.remove("hidden");
+      $("carrierNoLink").classList.add("hidden");
+      $("linkBox").textContent = base + "#" + frag;
+    } else {
+      $("carrierLink").classList.add("hidden");
+      $("carrierNoLink").classList.remove("hidden");
+    }
+    $("doneHead").textContent = pending.bell ? "The bell is cast" : "Ready to travel";
+    $("doneNote").textContent = pending.bell
+      ? "It hangs as the treble now — the light bell that leads the hunt. Choose how it travels:"
+      : "The tower as it stands, changes and all. Choose how it travels:";
+    $("rStep2").classList.add("hidden");
+    $("rStep3").classList.remove("hidden");
+    if (pending.melted && pending.melted.length && ringing) {
+      /* the furnace is audible */
+      buffers = {};
+      stopRinging();
+    }
+    renderAll();
+    if (IS_HTTP && base) {
+      try { history.replaceState(null, "", base + "#" + frag); } catch (e) {}
+    }
+  }
+  function copyLink() {
+    var text = $("linkBox").textContent;
+    var done = function () { $("copyBtn").textContent = "Copied — hand it to one person"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { selectLinkBox(); });
+    } else selectLinkBox();
+  }
+  function selectLinkBox() {
+    var r = document.createRange();
+    r.selectNodeContents($("linkBox"));
+    var sel = getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    $("copyBtn").textContent = "Select and copy it yourself";
+  }
+  function download() {
+    var src;
+    try { src = C.rewriteSource(PRISTINE, state); }
+    catch (e) { alert("Could not rewrite this copy: " + e.message); return; }
+    var blob = new Blob([src], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "passing-bell-" + state.gen + (state.gen === 1 ? "-hand" : "-hands") + ".html";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+
+  /* ── meeting of strangers ── */
+  function nextMeeting() {
+    if (!strangers.length) { renderAll(); return; }
+    var other = strangers[0];
+    var describe = function (s) {
+      var last = C.lastCastM(s);
+      return "<p style='font-size:.88rem'><b>" + s.bells.length + " bells</b> · " + s.gen + " hands · " +
+        fmtInt(s.rung) + " changes rung" + (s.bourdon.n ? " · " + s.bourdon.n + " melted" : "") +
+        (last != null ? "<br><span style='color:var(--dim);font-size:.8rem'>last cast " + fmtDate(last) + "</span>" : "") + "</p>";
+    };
+    $("meetIntro").textContent = "Two unrelated towers have arrived in this browser — they share no founder. The tower cannot tell whether their histories ever crossed; it only knows they are strangers.";
+    $("meetA").innerHTML = "<p class='smallcaps'>the one you were handed</p>" + describe(state);
+    $("meetB").innerHTML = "<p class='smallcaps'>the one already here</p>" + describe(other);
+    $("meetNote").textContent = "Hung together, their bells share one frame: counts add, and if more than twelve bells result, the oldest are melted into the bourdon.";
+    $("meeting").classList.add("open");
+    $("meetMerge").onclick = function () {
+      var m = C.merge(state, other);
+      state = m.state;
+      if (m.melted.length) notices.push(m.melted.length + (m.melted.length === 1 ? " bell was" : " bells were") + " melted in the joining.");
+      saveStored(state);
+      strangers.shift();
+      $("meeting").classList.remove("open");
+      nextMeeting();
+    };
+    $("meetKeepA").onclick = function () {
+      saveStored(state);
+      strangers.shift();
+      $("meeting").classList.remove("open");
+      nextMeeting();
+    };
+    $("meetKeepB").onclick = function () {
+      state = other;
+      saveStored(state);
+      strangers.shift();
+      $("meeting").classList.remove("open");
+      nextMeeting();
+    };
+  }
+
+  /* ── wire ── */
+  $("ringBtn").onclick = function () { $("introCard").classList.add("hidden"); startRinging(); };
+  $("stopBtn").onclick = stopRinging;
+  $("passBtn").onclick = function () { openRitual("cast"); };
+  $("engrave").oninput = updateRopeWeight;
+  $("toManifest").onclick = function () { buildPending(); showManifest(); };
+  $("backTo1").onclick = function () {
+    if (ritualMode === "cast") { $("rStep2").classList.add("hidden"); $("rStep1").classList.remove("hidden"); }
+    else closeRitual();
+  };
+  $("cancel1").onclick = closeRitual;
+  $("relayLink").onclick = function () { ritualMode = "relay"; buildPending(); showManifest(); };
+  $("commitBtn").onclick = commit;
+  $("copyBtn").onclick = copyLink;
+  $("dlBtn").onclick = download;
+  $("doneBack").onclick = function () {
+    closeRitual();
+    $("copyBtn").textContent = "Copy the link";
+    if (state.bells.length && !ringing) startRinging();
+  };
+
+  if (!C.isGenesis(state)) saveStored(state);
+  renderAll();
+  nextMeeting();
+  window.TowerCore = C; /* dev-console honesty: forgery is documented, not hidden */
+})();
+</script>
+</body>
+</html>
